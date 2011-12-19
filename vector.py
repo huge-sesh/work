@@ -63,3 +63,11 @@ class vector(tuple):
 
     def round(self):
         return vector(int(self[0] + 0.5), int(self[1] + 0.5))
+
+    @property
+    def x(self):
+        return self[0]
+
+    @property
+    def y(self):
+        return self[1]

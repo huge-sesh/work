@@ -1,5 +1,6 @@
 import pygame, time
-import game, world
+import game, world, edge
+from vector import vector
 
 pygame.init()
 pygame.font.init()
@@ -30,6 +31,6 @@ def update():
 
 def render():
     for obj in objects: obj.render()
-
+    edge.manager.render()
 
 if __name__ == '__main__': game.run()

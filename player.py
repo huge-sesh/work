@@ -8,12 +8,14 @@ import resource, game, time, math, input, clock
 max_speed = 20.0
 acceleration = 10000.0
 deceleration = 5000.0
+air_acceleration = 1000.0
 jump_force = 10.0
+size = (32, 32)
 
 class Player(Component):
     def __init__(self, obj, **kwargs):
         super(Player, self).__init__(obj)
-        self.image = pygame.transform.scale(resource.get('characters')[0][0], (32, 32))
+        self.image = pygame.transform.scale(resource.get('characters')[0][0], size)
         self.keys = {}
         print 'instantiated player'
 
@@ -36,18 +38,24 @@ class Player(Component):
                     if velocity_delta.sq_norm() > self['Physics'].velocity.sq_norm(): 
                         velocity_delta = -self['Physics'].velocity
 
-                limit = max(abs(self['Physics'].velocity), max_speed)
-
-                if not velocity_delta.is_zero():
-                    new_velocity = self['Physics'].velocity + velocity_delta
-                    new_speed = abs(new_velocity)
-                    if new_speed > limit:
-                        new_velocity = new_velocity * (limit / new_speed)
-                    self['Physics'].velocity = new_velocity
                 self['Physics'].velocity = self['Physics'].velocity - self['Physics'].attached.n
+                self.impulse(velocity_delta)
+        else:
+            self.impulse(vector(self.horizontal(), 0.0) * air_acceleration * clock.delta)
+
+    def impulse(self, velocity_delta):
+        limit = max(abs(self['Physics'].velocity), max_speed)
+        if not velocity_delta.is_zero():
+            new_velocity = self['Physics'].velocity + velocity_delta
+            new_speed = abs(new_velocity)
+            if new_speed > limit:
+                new_velocity = new_velocity * (limit / new_speed)
+            self['Physics'].velocity = new_velocity
 
     def render(self):
         game.screen.blit(self.image, self.pos)
+        if self['Physics'].attached:
+            pygame.draw.line(game.screen, pygame.Color(255, 0, 0, 0), self['Physics'].attached.origin, self['Physics'].attached.end, 8)
 
     def print_input(self):
         print vector(self.horizontal(), self.vertical())
@@ -57,13 +65,11 @@ class Player(Component):
             self.keys[input.mapping[key]] = clock.time
         else:
             print key, 'not in mapping'
-        self.print_input()
 
     def key_up(self, key):
         if key in input.mapping:
             if input.mapping[key] in self.keys:
                 del(self.keys[input.mapping[key]])
-        self.print_input()
 
     def most_recent(self, pos, neg):
         if pos in self.keys and neg in self.keys:
