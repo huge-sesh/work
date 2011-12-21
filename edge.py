@@ -51,7 +51,8 @@ class Edge(object):
 
 class Manager:
     def __init__(self):
-        self.edges = {}
+        self.clear()
+
     def add(self, edge):
         assert edge.key not in self.edges, 'adding duplicate key'
         self.edges[edge.key()] = edge
@@ -61,6 +62,9 @@ class Manager:
             mirror.active = False
         else: edge.active = True
 
+        for p in (edge.origin, edge.end):
+            self.grid[p.x/32][p.y/32].add(edge)
+
     def remove(self, edge):
         assert edge.key in self.edges, 'removed edge not in tree'
         assert edge == self.edges[edge.key()], 'removed edge but wrong edge was already in tree'
@@ -69,14 +73,26 @@ class Manager:
         mirror = self.edges.get(edge.rkey(), None)
         if mirror: mirror.active = True
 
+        for p in (edge.origin, edge.end):
+            self.grid[p.x/32][p.y/32].remove(edge)
 
     def clear(self):
         self.edges = {}
+        self.grid = [[set() for i in range(512)] for i in range(512)]
 
     def render(self):
         for edge in self.edges.itervalues():
             if edge.active: color = pygame.Color(0, 255, 0, 0)
             else: color = pygame.Color(0, 0, 255, 0)
             pygame.draw.line(game.screen, color, edge.origin, edge.end, 4)
+
+    def broadphase(self, travel):
+        ret = set()
+        for x in range(travel[0]//32, travel[2]//32 + 2):
+            for y in range(travel[1]//32, travel[3]//32 + 2):
+                #print 'check', x, y, self.grid[x][y]
+                ret |= self.grid[x][y]
+        #print len(ret), 'items in broadphase'
+        return ret
 
 manager = Manager()

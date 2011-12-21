@@ -8,8 +8,8 @@ class Physics(work.Component):
         super(Physics, self).__init__(obj, **kwargs)
         self.velocity = vector(0,0)
         self.rect = pygame.Rect(0,0,30,30)
-        #self.corners = (vector(0,0), vector(0,30), vector(30,30), vector(30,0))
-        self.corners = (vector(16,16),)
+        self.corners = (vector(0,0), vector(0,30), vector(30,30), vector(30,0))
+        #self.corners = (vector(16,16),)
         self.attached = None
 
     def accelerate(self, impulse):
@@ -23,13 +23,25 @@ class Physics(work.Component):
 
     def travel(self, timestep):
         if timestep <= 0 or self.velocity.is_zero(): 
-            print "UNTRAVEL"
+            #print "UNTRAVEL"
             return
 
         traveled = timestep
         hit = None
+
+        r = [self.pos + corner for corner in self.corners]
+        r = [orig + self.velocity * timestep for orig in r] + r
+        r = [
+            min([v.x for v in r]),
+            min([v.y for v in r]),
+            max([v.x for v in r]),
+            max([v.y for v in r]),
+        ]
+
+        edges = edge.manager.broadphase(r)
+
         for corner in self.corners:
-            for ed in edge.manager.edges.itervalues():
+            for ed in edges:
                 collision = ed.collide_point(self.pos + corner, self.velocity * timestep)
                 if collision is not None: 
                     if hit == None or collision <= traveled:
@@ -37,9 +49,9 @@ class Physics(work.Component):
                         traveled = timestep * collision
         
         future = self.pos + (self.velocity * traveled) + self.corners[0]
-        if any((future.x < 32, future.x > 640-32)): print "PASS THROUGH X"
-        if any((future.y < 32, future.y > 480-32)): print "PASS THROUGH Y"
-        print self.pos + self.corners[0], self.velocity * traveled, traveled, future, hit
+        #if any((future.x < 32, future.x > 640-32)): print "PASS THROUGH X"
+        #if any((future.y < 32, future.y > 480-32)): print "PASS THROUGH Y"
+        #print self.pos + self.corners[0], self.velocity * traveled, traveled, future, hit
 
         self.pos = self.pos + (self.velocity * traveled)
         if hit:
@@ -47,6 +59,6 @@ class Physics(work.Component):
             direction = (hit.end - hit.origin).unit()
             self.velocity = direction * self.velocity.dot(direction)
             self.attached = hit
-            print "RETRAVEL"
+            #print "RETRAVEL"
             self.travel(timestep - traveled)
 
