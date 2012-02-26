@@ -5,6 +5,7 @@ DOWN = 2
 LEFT = 3
 RIGHT = 4
 JUMP = 5
+THROW = 6
 
 mapping = {
     pygame.K_w : UP,
@@ -12,4 +13,5 @@ mapping = {
     pygame.K_a : LEFT,
     pygame.K_d : RIGHT,
     pygame.K_SPACE : JUMP,
+    pygame.K_LSHIFT : THROW,
 }

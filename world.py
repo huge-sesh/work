@@ -16,3 +16,5 @@ blocks += [block.Block(work.O(vector(x*32, y))) for y in (0, 480-32) for x in ra
 
 def update():
     game.screen.blit(background, (0, 0))
+def pre_update(): pass
+def post_update(): pass

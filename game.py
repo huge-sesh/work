@@ -11,6 +11,7 @@ objects = set()
 def run():
     done = False
     while not done:
+        pre_update()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 done = True
@@ -22,12 +23,21 @@ def run():
         update()
         render()
         pygame.display.flip()
+        post_update()
     print 'pg.quit'
     pygame.quit()
 
 def update():
     world.update()
     for obj in objects: obj.update()
+
+def pre_update():
+    world.pre_update()
+    for obj in objects: obj.pre_update()
+
+def post_update():
+    world.post_update()
+    for obj in objects: obj.post_update()
 
 def render():
     for obj in objects: obj.render()

@@ -11,6 +11,11 @@ class O(object):
 
     def update(self):
         for component in self.components.itervalues(): component.update()
+    def pre_update(self):
+        for component in self.components.itervalues(): component.pre_update()
+    def post_update(self):
+        for component in self.components.itervalues(): component.post_update()
+
 
     def render(self):
         for component in self.components.itervalues(): component.render()
@@ -47,6 +52,8 @@ class Component(object):
     size = property(get_size, set_size)
 
     def update(self): pass
+    def pre_update(self): pass
+    def post_update(self): pass
     def render(self): pass
 
 if __name__ == '__main__': game.run()
