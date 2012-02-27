@@ -1,33 +1,27 @@
 import pygame
 from work import O, Component
 from vector import vector
-import resource, game, time, math, input, clock, movement
+import resource, game, time, math, input, clock, movement, world
 
-size = (32, 32)
 
 class Player(Component):
     def __init__(self, obj, **kwargs):
         super(Player, self).__init__(obj)
         self.movement = movement.Momentum()
-        self.image = pygame.transform.scale(resource.get('characters')[0][0], size)
+        self.size = vector(32, 32)
+        self.image = pygame.transform.scale(resource.get('characters')[0][0], self.size)
         self.keys = {}
         self.new_keys = set()
         print 'instantiated player'
 
     def bounce(self, direction):
         if self['Physics'].velocity.dot(direction) < 0:
+            #reflect
             u = direction.normal()
             v = direction
             t = vector(self['Physics'].velocity.dot(u), -self['Physics'].velocity.dot(v))
             self['Physics'].velocity = vector(t.x * u.x + t.y * v.x, t.x * u.y + t.y * v.y) 
             self['Physics'].velocity += direction * self.movement.speed_bonus
-
-            #if direction.x == 0:
-            #    self['Physics'].velocity = vector(self['Physics'].velocity.x, -self['Physics'].velocity.y)
-            #elif direction.y == 0:
-            #    self['Physics'].velocity = vector(-self['Physics'].velocity.x, self['Physics'].velocity.y)
-            #else:
-            #    self['Physics'].velocity
         else:
             self['Physics'].velocity += direction * self.movement.speed_bonus
 
@@ -39,34 +33,42 @@ class Player(Component):
         self.new_keys = set()
 
     def update(self):
+        direction = vector(self.horizontal(), self.vertical())
+
+        if input.JUMP in self.new_keys:
+            enemies = world.search('Enemy', self.pos, self.size.x * 1.5)
+            if enemies and not direction.is_zero():
+                self.bounce(direction.unit())
+                enemies[0].bounce(-direction.unit() * abs(self['Physics'].velocity))
+        elif input.THROW in self.new_keys:
+            enemies = world.search('Enemy', self.pos, self.size.x * 1.5)
+            if enemies and not direction.is_zero():
+                self.throw(direction.unit())
+                enemies[0].throw(-direction.unit() * abs(self['Physics'].velocity))
+
         if self['Physics'].attached:
-            velocity_delta = vector(self.horizontal(), self.vertical())
+            direction = vector(self.horizontal(), self.vertical())
             if input.JUMP in self.keys:
-                velocity_delta = velocity_delta + self['Physics'].attached.n
-                if not velocity_delta.is_zero():
-                    velocity_delta = velocity_delta.unit() * self.movement.jump_force
-                    self['Physics'].velocity = self['Physics'].velocity + velocity_delta
+                direction = direction + self['Physics'].attached.n
+                if not direction.is_zero():
+                    direction = direction.unit() * self.movement.jump_force
+                    self['Physics'].velocity = self['Physics'].velocity + direction
             else:
                 edge = self['Physics'].attached
-                if not velocity_delta.is_zero(): 
-                    velocity_delta = velocity_delta.unit()
-                    velocity_delta = self['Physics'].attached.vector * velocity_delta.dot(self['Physics'].attached.vector)
-                    velocity_delta = velocity_delta * abs(velocity_delta.dot(edge.vector)) * self.movement.acceleration(clock.delta)
+                if not direction.is_zero(): 
+                    direction = direction.unit()
+                    direction = self['Physics'].attached.vector * direction.dot(self['Physics'].attached.vector)
+                    direction = direction * abs(direction.dot(edge.vector)) * self.movement.acceleration(clock.delta)
                 elif not self['Physics'].velocity.is_zero():
-                    velocity_delta = - self['Physics'].velocity.unit() * self.movement.deceleration(clock.delta)
-                    if velocity_delta.sq_norm() > self['Physics'].velocity.sq_norm(): 
-                        velocity_delta = -self['Physics'].velocity
+                    direction = - self['Physics'].velocity.unit() * self.movement.deceleration(clock.delta)
+                    if direction.sq_norm() > self['Physics'].velocity.sq_norm(): 
+                        direction = -self['Physics'].velocity
 
                 self['Physics'].velocity = self['Physics'].velocity - self['Physics'].attached.n
-                self.impulse(velocity_delta)
+                self.impulse(direction)
         else:
             self.impulse(vector(self.horizontal(), 0.0) * self.movement.air_acceleration(clock.delta))
-            if input.JUMP in self.new_keys:
-                if self.horizontal() or self.vertical():
-                    self.bounce(vector(self.horizontal(), self.vertical()).unit())
-            elif input.THROW in self.new_keys:
-                if self.horizontal() or self.vertical():
-                    self.throw(vector(self.horizontal(),self.vertical()).unit())
+
 
     def impulse(self, velocity_delta):
         limit = max(abs(self['Physics'].velocity.x), self.movement.max_speed)

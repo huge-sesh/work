@@ -11,12 +11,13 @@ class Physics(work.Component):
         self.corners = (vector(0,0), vector(0,30), vector(30,30), vector(30,0))
         #self.corners = (vector(16,16),)
         self.attached = None
+        self.gravity = 1.0
 
     def accelerate(self, impulse):
         self.velocity = self.velocity + (impulse * clock.delta)
 
     def update(self):
-        self.accelerate(world.gravity)
+        self.accelerate(world.gravity * self.gravity)
         #print 'pos %s velocity %s' %(self.pos, self.velocity)
         self.attached = None
         self.travel(1.0)

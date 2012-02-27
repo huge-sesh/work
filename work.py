@@ -20,10 +20,10 @@ class O(object):
     def render(self):
         for component in self.components.itervalues(): component.render()
 
-    def set_pos(self, val): self.rect = pygame.Rect(val[0],val[1], self.rect.width, self.rect.height)
+    def set_pos(self, val): self.rect = pygame.Rect(val.x,val.y, self.rect.width, self.rect.height)
     def get_pos(self): return vector(self.rect.x, self.rect.y)
-    def set_size(self, val): self.rect = pygame.Rect(self.rect.x, self.rect.y, val[0], val[1])
-    def get_size(self): return (self.rect.width, self.rect.height)
+    def set_size(self, val): self.rect = pygame.Rect(self.rect.x, self.rect.y, val.x, val.y)
+    def get_size(self): return vector(self.rect.width, self.rect.height)
 
     pos = property(get_pos, set_pos)
     size = property(get_size, set_size)

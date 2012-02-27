@@ -53,6 +53,10 @@ class Manager:
     def __init__(self):
         self.clear()
 
+    def clear(self):
+        self.edges = {}
+        self.grid = [[set() for i in range(512)] for i in range(512)]
+
     def add(self, edge):
         assert edge.key not in self.edges, 'adding duplicate key'
         self.edges[edge.key()] = edge
@@ -75,10 +79,6 @@ class Manager:
 
         for p in (edge.origin, edge.end):
             self.grid[p.x/32][p.y/32].remove(edge)
-
-    def clear(self):
-        self.edges = {}
-        self.grid = [[set() for i in range(512)] for i in range(512)]
 
     def render(self):
         for edge in self.edges.itervalues():

@@ -1,8 +1,9 @@
 from work import O, Component
-import physics, player
+import physics, player, enemy
 
 prefabs = {
-    'player' : [physics.Physics, player.Player]
+    'player' : [physics.Physics, player.Player],
+    'enemy' : [physics.Physics, enemy.Enemy],
 }
 
 def make(name):

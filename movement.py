@@ -14,10 +14,10 @@ class Movement(object):
 class Momentum(Movement):
     def __init__(self):
         super(Momentum, self).__init__()
-        self.max_speed = 20.0
-        self.accel_time = 0.002
-        self.decel_time = 0.004
-        self.air_accel_time = 0.02
+        self.max_speed = 10.0
+        self.accel_time = 0.01
+        self.decel_time = 0.01
+        self.air_accel_time = 0.1
         self.jump_force = 10.0
         self.speed_bonus = 5.0
 
